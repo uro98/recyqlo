@@ -88,14 +88,6 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        try {
-                Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.evian, null);
-                Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-                callCloudVision(bitmap);
-            } catch (Exception e) {
-                Timber.e(e);
-            }
-
     }
 
     protected void onActivityResult (int requestCode,
@@ -106,6 +98,14 @@ public class MainActivity extends AppCompatActivity {
             File photoFile = new File(currentPhotoPath);
             Bitmap myBitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
             click_image_id.setImageBitmap(myBitmap);
+
+            try {
+//                Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.evian, null);
+//                Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+                callCloudVision(myBitmap);
+            } catch (Exception e) {
+                Timber.e(e);
+            }
         }
     }
 
