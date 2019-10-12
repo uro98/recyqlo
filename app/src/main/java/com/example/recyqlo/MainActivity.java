@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
+                ".jpg",         /* suffix he*/
                 storageDir      /* directory */
         );
 
@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
         return annotateRequest;
     }
 
-    private static class LableDetectionTask extends AsyncTask<Object, Void, String> {
+    private class LableDetectionTask extends AsyncTask<Object, Void, String> {
         private final WeakReference<MainActivity> mActivityWeakReference;
         private Vision.Images.Annotate mRequest;
 
@@ -250,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
             if (activity != null && !activity.isFinishing()) {
 
                 //TODO: this should make the info relevant to resulting label to pop up
+                waste_info(result);
                 TextView imageDetail = activity.findViewById(R.id.image_details);
                 imageDetail.setText(result);
             }
@@ -312,10 +313,14 @@ public class MainActivity extends AppCompatActivity {
         labelsOfInterest.add("Floor");
         labelsOfInterest.add("Computer");
         labelsOfInterest.add("Laptop");
+        labelsOfInterest.add("Computer");
+        labelsOfInterest.add("Laptop");
+        labelsOfInterest.add("Tin can");
+
 
         for(String found : labels) {
             for(String label : labelsOfInterest) {
-                if (label.equals(found)) return label;
+                if (label.equals(found)) return label.toLowerCase();
             }
         }
 
@@ -333,6 +338,9 @@ public class MainActivity extends AppCompatActivity {
                 popUp.setMessage("Recycle me: Empty and rinse the bottle, squash the bottle, leave on the labels and replace the lids, then recycle in plastic waste \nFun Fact: One 500ml plastic bottle has a total carbon footprint equal to 82.8grams of carbon dioxide");
                 break;
             case "aluminum can":
+                popUp.setMessage("Recycle me: Empty and rinse can, squash can and recycle me \nFun Fact: One 330ml aluminium can has a total carbon footprint equal to 170grams of carbon dioxide");
+                break;
+            case "tin can":
                 popUp.setMessage("Recycle me: Empty and rinse can, squash can and recycle me \nFun Fact: One 330ml aluminium can has a total carbon footprint equal to 170grams of carbon dioxide");
                 break;
             case "paper":
