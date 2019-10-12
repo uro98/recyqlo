@@ -1,9 +1,11 @@
 package com.example.recyqlo;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.content.FileProvider;
 
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -35,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -286,5 +289,46 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return message.toString();
+    }
+
+    private void waste_info(String item) {
+        AlertDialog.Builder popUp = new AlertDialog.Builder(this);
+        popUp.setTitle(item);
+        switch (item) {
+            case "plastic bottle":
+                popUp.setMessage("Recycle me: Empty and rinse the bottle, squash the bottle, leave on the labels and replace the lids, then recycle in plastic waste \nFun Fact: One 500ml plastic bottle has a total carbon footprint equal to 82.8grams of carbon dioxide");
+                break;
+            case "aluminum can":
+                popUp.setMessage("Recycle me: Empty and rinse can, squash can and recycle me \nFun Fact: One 330ml aluminium can has a total carbon footprint equal to 170grams of carbon dioxide");
+                break;
+            case "paper":
+                popUp.setMessage("Recycle me: Remove any staples or tape and throw me in the paper waste \nFun Fact: 500 sheets of paper has a total carbon footprint equal to 4.59lbs of carbon dioxide");
+                break;
+            case "laptop":
+                popUp.setMessage("Recycle me: take me to a household waste recycling center, remember to delete and remove all data from the hard-drive, you can recycle the laptop battery at household battery collection points\nFun Fact: 15 PCs can generate as much carbon as a typical midsize car");
+                break;
+            case "glass bottle":
+                popUp.setMessage("Recycle me: empty and rinse me, put the lid back on and throw me in glass waste\nFun Fact: Every tonne of recycled glass saves 670kilograms of carbon dioxide emissions");
+                break;
+            default:
+                popUp.setMessage("Sorry this item was not recognised in our database!");
+        }
+        popUp.setCancelable(true);
+
+        popUp.setPositiveButton("Useful Info",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                    }
+                });
+        popUp.setNegativeButton("Unuseful", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        AlertDialog alert = popUp.create();
+        popUp.show();
     }
 }
