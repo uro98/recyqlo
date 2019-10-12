@@ -23,4 +23,6 @@
         android:layout_height="450dp"
         android:id="@+id/click_image"
         android:layout_marginBottom="10dp"/>
+
+
 </RelativeLayout>

@@ -21,7 +21,6 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int pic_id = 123;
     static final int REQUEST_TAKE_PHOTO = 1;
 
     // Define the button and imageview type variable
@@ -41,14 +40,15 @@ public class MainActivity extends AppCompatActivity {
         camera_open_id.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v){
                 dispatchTakePictureIntent();
             }
         });
     }
 
-    protected void onActivityResult (int requestCode,int resultCode, Intent data) {
+    protected void onActivityResult (int requestCode,
+                                     int resultCode,
+                                     Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_TAKE_PHOTO) {
             File photoFile = new File(currentPhotoPath);
@@ -94,13 +94,5 @@ public class MainActivity extends AppCompatActivity {
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
         return image;
-    }
-
-    private void galleryAddPic() {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        File f = new File(currentPhotoPath);
-        Uri contentUri = Uri.fromFile(f);
-        mediaScanIntent.setData(contentUri);
-        this.sendBroadcast(mediaScanIntent);
     }
 }
