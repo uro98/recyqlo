@@ -100,8 +100,6 @@ public class MainActivity extends AppCompatActivity {
             click_image_id.setImageBitmap(myBitmap);
 
             try {
-//                Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.evian, null);
-//                Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
                 callCloudVision(myBitmap);
             } catch (Exception e) {
                 Timber.e(e);
@@ -151,13 +149,6 @@ public class MainActivity extends AppCompatActivity {
         currentPhotoPath = image.getAbsolutePath();
         return image;
 
-//        try {
-//            Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.evian, null);
-//            Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-//            callCloudVision(bitmap);
-//        } catch (Exception e) {
-//            Timber.e(e);
-//        }
     }
 
     private Vision.Images.Annotate prepareAnnotationRequest(Bitmap bitmap) throws IOException {
@@ -241,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Timber.d("created Cloud Vision request object, sending request");
                 BatchAnnotateImagesResponse response = mRequest.execute();
-                return convertResponseToString(response);
+                return findRelevantLabel(response);
 
             } catch (GoogleJsonResponseException e) {
                 Timber.d("failed to make API request because %s", e.getContent());
@@ -254,6 +245,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             MainActivity activity = mActivityWeakReference.get();
             if (activity != null && !activity.isFinishing()) {
+
+                //TODO: this should make the info relevant to resulting label to pop up
                 TextView imageDetail = activity.findViewById(R.id.image_details);
                 imageDetail.setText(result);
             }
@@ -287,4 +280,45 @@ public class MainActivity extends AppCompatActivity {
 
         return message.toString();
     }
+
+    private static String findRelevantLabel(BatchAnnotateImagesResponse response) {
+        ArrayList<String> labelList = convertResponseToList(response);
+        return chooseLabel(labelList);
+    }
+
+    private static ArrayList<String> convertResponseToList(BatchAnnotateImagesResponse response) {
+        ArrayList labelList = new ArrayList();
+
+        List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
+        if (labels != null) {
+            for (EntityAnnotation label : labels) {
+                labelList.add(label.getDescription());
+            }
+        }
+        System.out.println(labelList.toString());
+        return labelList;
+
+    }
+
+    private static String chooseLabel(ArrayList<String> labels){
+        List<String> labelsOfInterest = new ArrayList<String>();
+        labelsOfInterest.add("Aluminum can");
+        labelsOfInterest.add("Plastic bottle");
+        labelsOfInterest.add("Cardboard");
+        labelsOfInterest.add("Paper");
+        labelsOfInterest.add("Floor");
+        labelsOfInterest.add("Computer");
+        labelsOfInterest.add("Laptop");
+
+        for(String found : labels) {
+            for(String label : labelsOfInterest) {
+                if (label.equals(found)) return label;
+            }
+        }
+
+        return "no relevant label";
+
+    }
+
+
 }
