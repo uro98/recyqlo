@@ -5,35 +5,44 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/green"
     tools:context=".MainActivity">
-
-    <!-- add Camera Button to open the Camera-->
-    <Button
-        android:layout_width="100dp"
-        android:layout_height="50dp"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/camera_button"
-        android:layout_marginTop="40dp"
-        android:text="Camera" />
-
-    <!-- add ImageView to display the captured image-->
-    <ImageView
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:layout_width="350dp"
-        android:layout_height="450dp"
-        android:id="@+id/click_image"
-        android:layout_marginBottom="10dp"/>
 
     <TextView
         android:id="@+id/image_details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="40dp"
-        android:text="Hello World!"
-         />
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:gravity="center"
+        />
 
+    <!-- add ImageView to display the captured image-->
+    <ImageView
+        android:layout_centerHorizontal="true"
+        android:layout_width="350dp"
+        android:layout_height="430dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginBottom="10dp"
+        android:id="@+id/click_image"/>
+
+    <!-- add Camera Button to open the Camera-->
+    <Button
+        android:id="@+id/camera_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="40dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:background="@drawable/button"
+        android:text="Take Photo" />
 
 </RelativeLayout>

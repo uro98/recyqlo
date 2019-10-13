@@ -55,20 +55,19 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    static final int REQUEST_TAKE_PHOTO = 1;
-
-    // Define the button and imageview type variable
-    Button camera_open_id;
-    ImageView click_image_id;
-
-    String currentPhotoPath;
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int REQUEST_TAKE_PHOTO = 1;
+    private static final int MAX_DIMENSION = 1200;
 
     private static final String CLOUD_VISION_API_KEY = BuildConfig.API_KEY;
     private static final String ANDROID_CERT_HEADER = "X-Android-Cert";
     private static final String ANDROID_PACKAGE_HEADER = "X-Android-Package";
     private static final int MAX_LABEL_RESULTS = 10;
 
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private Button camera_open_id;
+    private ImageView click_image_id;
+    private String currentPhotoPath;
+    private TextView imageDetail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
             Timber.plant(new Timber.DebugTree());
         }
 
+        imageDetail = findViewById(R.id.image_details);
+        imageDetail.setText("Take a photo of an object to find out how to recycle it!");
+
         camera_open_id = findViewById(R.id.camera_button);
         click_image_id = findViewById(R.id.click_image);
 
@@ -88,9 +90,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v){
                 dispatchTakePictureIntent();
             }
-
         });
-
     }
 
     protected void onActivityResult (int requestCode,
@@ -99,11 +99,12 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQUEST_TAKE_PHOTO) {
             File photoFile = new File(currentPhotoPath);
-            Bitmap myBitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
-            click_image_id.setImageBitmap(myBitmap);
+            Bitmap bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+            click_image_id.setImageBitmap(bitmap);
 
             try {
-                callCloudVision(myBitmap);
+                Bitmap scaledBitmap = scaleBitmapDown(bitmap, MAX_DIMENSION);
+                callCloudVision(scaledBitmap);
             } catch (Exception e) {
                 Timber.e(e);
             }
@@ -144,14 +145,13 @@ public class MainActivity extends AppCompatActivity {
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
-                ".jpg",         /* suffix he*/
+                ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
 
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
         return image;
-
     }
 
     private Vision.Images.Annotate prepareAnnotationRequest(Bitmap bitmap) throws IOException {
@@ -252,12 +252,33 @@ public class MainActivity extends AppCompatActivity {
                 //TODO: this should make the info relevant to resulting label to pop up
                 waste_info(result);
                 TextView imageDetail = activity.findViewById(R.id.image_details);
-                imageDetail.setText(result);
+                imageDetail.setText(result.substring(0, 1).toUpperCase() + result.substring(1));
             }
         }
     }
 
+    private Bitmap scaleBitmapDown(Bitmap bitmap, int maxDimension) {
+        int originalWidth = bitmap.getWidth();
+        int originalHeight = bitmap.getHeight();
+        int resizedWidth = maxDimension;
+        int resizedHeight = maxDimension;
+
+        if (originalHeight > originalWidth) {
+            resizedHeight = maxDimension;
+            resizedWidth = (int) (resizedHeight * (float) originalWidth / (float) originalHeight);
+        } else if (originalWidth > originalHeight) {
+            resizedWidth = maxDimension;
+            resizedHeight = (int) (resizedWidth * (float) originalHeight / (float) originalWidth);
+        } else if (originalHeight == originalWidth) {
+            resizedHeight = maxDimension;
+            resizedWidth = maxDimension;
+        }
+        return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false);
+    }
+
     private void callCloudVision(final Bitmap bitmap) {
+        imageDetail.setText("Identifying object...");
+
         // Do the real work in an async task, because we need to use the network anyway
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -267,22 +288,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             Timber.d("failed to make API request because of other IOException %s", e.getMessage());
         }
-    }
-
-    private static String convertResponseToString(BatchAnnotateImagesResponse response) {
-        StringBuilder message = new StringBuilder("I found these things:\n\n");
-
-        List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
-        if (labels != null) {
-            for (EntityAnnotation label : labels) {
-                message.append(String.format(Locale.US, "%.3f: %s", label.getScore(), label.getDescription()));
-                message.append("\n");
-            }
-        } else {
-            message.append("nothing");
-        }
-
-        return message.toString();
     }
 
     private static String findRelevantLabel(BatchAnnotateImagesResponse response) {
@@ -299,9 +304,9 @@ public class MainActivity extends AppCompatActivity {
                 labelList.add(label.getDescription());
             }
         }
+
         System.out.println(labelList.toString());
         return labelList;
-
     }
 
     private static String chooseLabel(ArrayList<String> labels){
@@ -317,7 +322,6 @@ public class MainActivity extends AppCompatActivity {
         labelsOfInterest.add("Laptop");
         labelsOfInterest.add("Tin can");
 
-
         for(String found : labels) {
             for(String label : labelsOfInterest) {
                 if (label.equals(found)) return label.toLowerCase();
@@ -325,52 +329,42 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return "no relevant label";
-
     }
-
-
 
     private void waste_info(String item) {
         AlertDialog.Builder popUp = new AlertDialog.Builder(this);
-        popUp.setTitle(item);
+        popUp.setTitle(item.substring(0, 1).toUpperCase() + item.substring(1));
         switch (item) {
             case "plastic bottle":
-                popUp.setMessage("Recycle me: Empty and rinse the bottle, squash the bottle, leave on the labels and replace the lids, then recycle in plastic waste \nFun Fact: One 500ml plastic bottle has a total carbon footprint equal to 82.8grams of carbon dioxide");
+                popUp.setMessage("How to recycle: Empty and rinse the bottle, squash the bottle, leave on the labels and replace the lids, then recycle in plastic waste \n\nFun Fact: One 500ml plastic bottle has a total carbon footprint equal to 82.8grams of carbon dioxide");
                 break;
             case "aluminum can":
-                popUp.setMessage("Recycle me: Empty and rinse can, squash can and recycle me \nFun Fact: One 330ml aluminium can has a total carbon footprint equal to 170grams of carbon dioxide");
+                popUp.setMessage("How to recycle: Empty and rinse can, squash can and recycle me \n\nFun Fact: One 330ml aluminium can has a total carbon footprint equal to 170grams of carbon dioxide");
                 break;
             case "tin can":
-                popUp.setMessage("Recycle me: Empty and rinse can, squash can and recycle me \nFun Fact: One 330ml aluminium can has a total carbon footprint equal to 170grams of carbon dioxide");
+                popUp.setMessage("How to recycle: Empty and rinse can, squash can and recycle me \n\nFun Fact: One 330ml aluminium can has a total carbon footprint equal to 170grams of carbon dioxide");
                 break;
             case "paper":
-                popUp.setMessage("Recycle me: Remove any staples or tape and throw me in the paper waste \nFun Fact: 500 sheets of paper has a total carbon footprint equal to 4.59lbs of carbon dioxide");
+                popUp.setMessage("How to recycle: Remove any staples or tape and throw me in the paper waste \n\nFun Fact: 500 sheets of paper has a total carbon footprint equal to 4.59lbs of carbon dioxide");
                 break;
             case "laptop":
-                popUp.setMessage("Recycle me: take me to a household waste recycling center, remember to delete and remove all data from the hard-drive, you can recycle the laptop battery at household battery collection points\nFun Fact: 15 PCs can generate as much carbon as a typical midsize car");
+                popUp.setMessage("How to recycle: take me to a household waste recycling center, remember to delete and remove all data from the hard-drive, you can recycle the laptop battery at household battery collection points\n\nFun Fact: 15 PCs can generate as much carbon as a typical midsize car");
                 break;
             case "glass bottle":
-                popUp.setMessage("Recycle me: empty and rinse me, put the lid back on and throw me in glass waste\nFun Fact: Every tonne of recycled glass saves 670kilograms of carbon dioxide emissions");
+                popUp.setMessage("How to recycle: empty and rinse me, put the lid back on and throw me in glass waste\n\nFun Fact: Every tonne of recycled glass saves 670kilograms of carbon dioxide emissions");
                 break;
             default:
                 popUp.setMessage("Sorry this item was not recognised in our database!");
         }
         popUp.setCancelable(true);
 
-        popUp.setPositiveButton("Useful Info",
+        popUp.setPositiveButton("Okay!",
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dialogInterface.cancel();
                     }
                 });
-        popUp.setNegativeButton("Unuseful", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-            }
-        });
-        AlertDialog alert = popUp.create();
         popUp.show();
     }
 }
